@@ -303,7 +303,175 @@ export async function logout() {
   return { success: true }
 }
 
-// Function to update user settings
+// Add this function to fetch user data by email
+export async function getUserByEmail(email: string): Promise<any | null> {
+  try {
+    const token = process.env.GITHUB_TOKEN
+
+    if (!token) {
+      throw new Error("GitHub token not found")
+    }
+
+    // Get all issues from the repository
+    const response = await fetch("https://api.github.com/repos/lumagarcia57/vida-saborosa/issues", {
+      headers: {
+        Authorization: `token ${token}`,
+        Accept: "application/vnd.github.v3+json",
+      },
+    })
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch issues")
+    }
+
+    const issues = await response.json()
+
+    // Find issue with title "Usuários"
+    const usersIssue = issues.find((issue: any) => issue.title === "Usuários")
+
+    if (!usersIssue) {
+      return null
+    }
+
+    // Get the issue body
+    const issueResponse = await fetch(
+      `https://api.github.com/repos/lumagarcia57/vida-saborosa/issues/${usersIssue.number}`,
+      {
+        headers: {
+          Authorization: `token ${token}`,
+          Accept: "application/vnd.github.v3+json",
+        },
+      },
+    )
+
+    if (!issueResponse.ok) {
+      throw new Error("Failed to fetch issue details")
+    }
+
+    const issueDetails = await issueResponse.json()
+
+    // Parse the issue body as JSON
+    try {
+      const users = JSON.parse(issueDetails.body || "[]")
+      // Find user with the given email
+      const user = users.find((u: any) => u.email === email)
+      return user || null
+    } catch (error) {
+      console.error("Error parsing user data:", error)
+      return null
+    }
+  } catch (error) {
+    console.error("Error fetching user:", error)
+    return null
+  }
+}
+
+// Add this function to update user password
+export async function updateUserPassword(
+  email: string,
+  currentPassword: string,
+  newPassword: string,
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const token = process.env.GITHUB_TOKEN
+
+    if (!token) {
+      throw new Error("GitHub token not found")
+    }
+
+    // Get all issues from the repository
+    const response = await fetch("https://api.github.com/repos/lumagarcia57/vida-saborosa/issues", {
+      headers: {
+        Authorization: `token ${token}`,
+        Accept: "application/vnd.github.v3+json",
+      },
+    })
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch issues")
+    }
+
+    const issues = await response.json()
+
+    // Find issue with title "Usuários"
+    const usersIssue = issues.find((issue: any) => issue.title === "Usuários")
+
+    if (!usersIssue) {
+      return { success: false, error: "Usuários não encontrados" }
+    }
+
+    // Get the issue body
+    const issueResponse = await fetch(
+      `https://api.github.com/repos/lumagarcia57/vida-saborosa/issues/${usersIssue.number}`,
+      {
+        headers: {
+          Authorization: `token ${token}`,
+          Accept: "application/vnd.github.v3+json",
+        },
+      },
+    )
+
+    if (!issueResponse.ok) {
+      throw new Error("Failed to fetch issue details")
+    }
+
+    const issueDetails = await issueResponse.json()
+
+    // Parse the issue body as JSON
+    try {
+      const users = JSON.parse(issueDetails.body || "[]")
+      // Find user with the given email
+      const userIndex = users.findIndex((u: any) => u.email === email)
+
+      if (userIndex === -1) {
+        return { success: false, error: "Usuário não encontrado" }
+      }
+
+      // Verify current password
+      const isPasswordValid = await bcrypt.compare(currentPassword, users[userIndex].password)
+      if (!isPasswordValid) {
+        return { success: false, error: "Senha atual incorreta" }
+      }
+
+      // Hash the new password
+      const salt = await bcrypt.genSalt(10)
+      const hashedPassword = await bcrypt.hash(newPassword, salt)
+
+      // Update the password
+      users[userIndex].password = hashedPassword
+
+      // Update the issue
+      const updateResponse = await fetch(
+        `https://api.github.com/repos/lumagarcia57/vida-saborosa/issues/${usersIssue.number}`,
+        {
+          method: "PATCH",
+          headers: {
+            Authorization: `token ${token}`,
+            Accept: "application/vnd.github.v3+json",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            body: JSON.stringify(users, null, 2),
+          }),
+        },
+      )
+
+      if (!updateResponse.ok) {
+        throw new Error("Failed to update issue")
+      }
+
+      return { success: true }
+    } catch (error) {
+      console.error("Error updating password:", error)
+      return { success: false, error: "Erro ao atualizar senha" }
+    }
+  } catch (error) {
+    console.error("Error updating password:", error)
+    return { success: false, error: "Erro ao atualizar senha" }
+  }
+}
+
+// Update the updateUserSettings function to allow email changes
 export async function updateUserSettings(userData: any, section: string) {
   try {
     const token = process.env.GITHUB_TOKEN
@@ -371,13 +539,34 @@ export async function updateUserSettings(userData: any, section: string) {
         case "profile":
           users[userIndex].fullName = userData.fullName
           users[userIndex].phone = userData.phone
-          // Don't update email as it's the primary key
+
+          // If email is being changed, update the email and the cookie
+          if (userData.email !== userEmail) {
+            // Check if the new email already exists
+            const emailExists = users.some((u: any, idx: number) => idx !== userIndex && u.email === userData.email)
+            if (emailExists) {
+              throw new Error("Este email já está em uso")
+            }
+
+            users[userIndex].email = userData.email
+
+            // Update the cookie with the new email
+            cookies().set("user_email", userData.email, {
+              httpOnly: true,
+              secure: process.env.NODE_ENV === "production",
+              maxAge: 60 * 60 * 24 * 7, // 1 week
+              path: "/",
+            })
+          }
           break
         case "notifications":
           users[userIndex].notifications = userData.notifications
           break
         case "payment":
           users[userIndex].paymentMethods = userData.paymentMethods
+          break
+        case "security":
+          users[userIndex].security = userData.security
           break
         default:
           // For other sections, just update the whole section
@@ -412,5 +601,38 @@ export async function updateUserSettings(userData: any, section: string) {
   } catch (error) {
     console.error("Error updating user settings:", error)
     throw error
+  }
+}
+
+// Add this function to toggle biometric login
+export async function toggleBiometricLogin(enabled: boolean): Promise<{ success: boolean; error?: string }> {
+  try {
+    const userEmail = cookies().get("user_email")?.value
+
+    if (!userEmail) {
+      return { success: false, error: "Usuário não está logado" }
+    }
+
+    // Get the current user data
+    const userData = await getUserByEmail(userEmail)
+
+    if (!userData) {
+      return { success: false, error: "Usuário não encontrado" }
+    }
+
+    // Create or update security settings
+    if (!userData.security) {
+      userData.security = {}
+    }
+
+    userData.security.biometricLogin = enabled
+
+    // Update the user settings
+    await updateUserSettings(userData, "security")
+
+    return { success: true }
+  } catch (error) {
+    console.error("Error toggling biometric login:", error)
+    return { success: false, error: "Erro ao atualizar configurações de biometria" }
   }
 }
