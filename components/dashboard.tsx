@@ -87,16 +87,28 @@ export default function Dashboard() {
 
         {/* Category buttons */}
         <div className="flex justify-between gap-2 mt-4 pb-2">
-          <Button className="flex-1 bg-lime-200 hover:bg-lime-300 text-emerald-800 text-xs rounded-md py-1 h-auto">
+          <Button
+            className="flex-1 bg-lime-200 hover:bg-lime-300 text-emerald-800 text-xs rounded-md py-1 h-auto"
+            onClick={() => router.push("/categoria/hamburguer")}
+          >
             Hambúrguer
           </Button>
-          <Button className="flex-1 bg-lime-200 hover:bg-lime-300 text-emerald-800 text-xs rounded-md py-1 h-auto">
+          <Button
+            className="flex-1 bg-lime-200 hover:bg-lime-300 text-emerald-800 text-xs rounded-md py-1 h-auto"
+            onClick={() => router.push("/categoria/bebidas")}
+          >
             Bebidas
           </Button>
-          <Button className="flex-1 bg-lime-200 hover:bg-lime-300 text-emerald-800 text-xs rounded-md py-1 h-auto">
+          <Button
+            className="flex-1 bg-lime-200 hover:bg-lime-300 text-emerald-800 text-xs rounded-md py-1 h-auto"
+            onClick={() => router.push("/categoria/lanche")}
+          >
             Lanche
           </Button>
-          <Button className="flex-1 bg-lime-200 hover:bg-lime-300 text-emerald-800 text-xs rounded-md py-1 h-auto">
+          <Button
+            className="flex-1 bg-lime-200 hover:bg-lime-300 text-emerald-800 text-xs rounded-md py-1 h-auto"
+            onClick={() => router.push("/categoria/saudavel")}
+          >
             Saudável
           </Button>
         </div>
