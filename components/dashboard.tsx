@@ -3,10 +3,19 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Menu, Search, User, MapPin, ShoppingCart, Filter } from "lucide-react"
+import { Menu, Search, MapPin, ShoppingCart, Filter, User, Settings, LogOut } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { logout } from "@/actions/user-actions"
 
 export default function Dashboard() {
   const router = useRouter()
@@ -15,6 +24,15 @@ export default function Dashboard() {
   // Fork mascot image URL
   const forkMascotUrl =
     "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/4931877402758459127.jpg-l7qsgS4l5UK4sUMrPGnvZazj09SI2W.jpeg"
+
+  const handleLogout = async () => {
+    try {
+      await logout()
+      router.push("/")
+    } catch (error) {
+      console.error("Error logging out:", error)
+    }
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-[#BBF7D0]">
@@ -40,9 +58,25 @@ export default function Dashboard() {
             </div>
           </div>
 
-          <Button variant="ghost" size="icon" className="rounded-full bg-white p-1">
-            <User className="h-6 w-6 text-emerald-700" />
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="rounded-full bg-white p-1">
+                <User className="h-6 w-6 text-emerald-700" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => router.push("/configuracoes")}>
+                <Settings className="mr-2 h-4 w-4" />
+                <span>Configurações</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleLogout}>
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>Sair do app</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         <div className="mt-4 text-center">

@@ -1,12 +1,14 @@
 "use server"
 
 import bcrypt from "bcryptjs"
+import { cookies } from "next/headers"
 
 type UserData = {
   email: string
   fullName: string
   username: string
   password: string
+  [key: string]: any
 }
 
 type CreateUserResult = {
@@ -263,6 +265,24 @@ export async function verifyUser(email: string, password: string): Promise<boole
 
       // Compare passwords
       const isPasswordValid = await bcrypt.compare(password, user.password)
+
+      // If valid, set a login cookie
+      if (isPasswordValid) {
+        cookies().set("auth_token", "logged_in", {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          maxAge: 60 * 60 * 24 * 7, // 1 week
+          path: "/",
+        })
+
+        cookies().set("user_email", email, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          maxAge: 60 * 60 * 24 * 7, // 1 week
+          path: "/",
+        })
+      }
+
       return isPasswordValid
     } catch (error) {
       console.error("Error parsing user data:", error)
@@ -271,5 +291,126 @@ export async function verifyUser(email: string, password: string): Promise<boole
   } catch (error) {
     console.error("Error verifying user:", error)
     return false
+  }
+}
+
+// Function to log out user
+export async function logout() {
+  // Clear auth cookies
+  cookies().delete("auth_token")
+  cookies().delete("user_email")
+
+  return { success: true }
+}
+
+// Function to update user settings
+export async function updateUserSettings(userData: any, section: string) {
+  try {
+    const token = process.env.GITHUB_TOKEN
+    const userEmail = cookies().get("user_email")?.value
+
+    if (!token) {
+      throw new Error("GitHub token not found")
+    }
+
+    if (!userEmail) {
+      throw new Error("User not logged in")
+    }
+
+    // Get all issues from the repository
+    const response = await fetch("https://api.github.com/repos/lumagarcia57/vida-saborosa/issues", {
+      headers: {
+        Authorization: `token ${token}`,
+        Accept: "application/vnd.github.v3+json",
+      },
+    })
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch issues")
+    }
+
+    const issues = await response.json()
+
+    // Find issue with title "Usuários"
+    const usersIssue = issues.find((issue: any) => issue.title === "Usuários")
+
+    if (!usersIssue) {
+      throw new Error("Users issue not found")
+    }
+
+    // Get the issue body
+    const issueResponse = await fetch(
+      `https://api.github.com/repos/lumagarcia57/vida-saborosa/issues/${usersIssue.number}`,
+      {
+        headers: {
+          Authorization: `token ${token}`,
+          Accept: "application/vnd.github.v3+json",
+        },
+      },
+    )
+
+    if (!issueResponse.ok) {
+      throw new Error("Failed to fetch issue details")
+    }
+
+    const issueDetails = await issueResponse.json()
+
+    // Parse the issue body as JSON
+    try {
+      const users = JSON.parse(issueDetails.body || "[]")
+
+      // Find user with the given email
+      const userIndex = users.findIndex((u: any) => u.email === userEmail)
+
+      if (userIndex === -1) {
+        throw new Error("User not found")
+      }
+
+      // Update user data based on section
+      switch (section) {
+        case "profile":
+          users[userIndex].fullName = userData.fullName
+          users[userIndex].phone = userData.phone
+          // Don't update email as it's the primary key
+          break
+        case "notifications":
+          users[userIndex].notifications = userData.notifications
+          break
+        case "payment":
+          users[userIndex].paymentMethods = userData.paymentMethods
+          break
+        default:
+          // For other sections, just update the whole section
+          users[userIndex][section] = userData[section]
+      }
+
+      // Update the issue
+      const updateResponse = await fetch(
+        `https://api.github.com/repos/lumagarcia57/vida-saborosa/issues/${usersIssue.number}`,
+        {
+          method: "PATCH",
+          headers: {
+            Authorization: `token ${token}`,
+            Accept: "application/vnd.github.v3+json",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            body: JSON.stringify(users, null, 2),
+          }),
+        },
+      )
+
+      if (!updateResponse.ok) {
+        throw new Error("Failed to update issue")
+      }
+
+      return { success: true }
+    } catch (error) {
+      console.error("Error updating user settings:", error)
+      throw error
+    }
+  } catch (error) {
+    console.error("Error updating user settings:", error)
+    throw error
   }
 }
