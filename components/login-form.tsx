@@ -73,13 +73,13 @@ export default function LoginForm() {
         <div className="flex flex-col items-center mt-16 mb-8">
           <div className="w-40 h-40 relative mb-4">
             <Image
-              src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/4931877402758459127.jpg-l7qsgS4l5UK4sUMrPGnvZazj09SI2W.jpeg"
+              src="https://github.com/lumagarcia57/public-blob/blob/main/4931877402758459127-removebg-preview.png?raw=true"
               alt="Fork mascot"
               width={160}
               height={160}
               className="object-contain"
               style={{
-                filter: "brightness(0) invert(1)",
+                filter: " invert(0)",
               }}
             />
           </div>
