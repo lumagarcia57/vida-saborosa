@@ -11,7 +11,7 @@ import { Switch } from "@/components/ui/switch"
 import { ChevronLeft, Bell, User, CreditCard, Lock, HelpCircle, Save, Key } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { toast } from "@/components/ui/use-toast"
-import { updateUserSettings, getUserByEmail, updateUserPassword, toggleBiometricLogin } from "@/actions/user-actions"
+import { updateUserSettings, getUserByEmail, updateUserPassword } from "@/actions/user-actions"
 import {
   Dialog,
   DialogContent,
@@ -26,7 +26,6 @@ export default function SettingsPage() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [isLoadingPassword, setIsLoadingPassword] = useState(false)
-  const [isLoadingBiometric, setIsLoadingBiometric] = useState(false)
   const [isLoadingUserData, setIsLoadingUserData] = useState(true)
 
   // Password change state
@@ -219,45 +218,6 @@ export default function SettingsPage() {
       })
     } finally {
       setIsLoadingPassword(false)
-    }
-  }
-
-  const handleToggleBiometric = async (checked: boolean) => {
-    setIsLoadingBiometric(true)
-
-    try {
-      const result = await toggleBiometricLogin(checked)
-
-      if (result.success) {
-        setUserData({
-          ...userData,
-          security: {
-            ...userData.security,
-            biometricLogin: checked,
-          },
-        })
-
-        toast({
-          title: checked ? "Login biométrico ativado" : "Login biométrico desativado",
-          description: checked
-            ? "Você poderá usar sua biometria para fazer login."
-            : "O login biométrico foi desativado.",
-        })
-      } else {
-        toast({
-          title: "Erro",
-          description: result.error || "Ocorreu um erro ao atualizar as configurações de biometria.",
-          variant: "destructive",
-        })
-      }
-    } catch (error) {
-      toast({
-        title: "Erro",
-        description: "Ocorreu um erro ao atualizar as configurações de biometria.",
-        variant: "destructive",
-      })
-    } finally {
-      setIsLoadingBiometric(false)
     }
   }
 
@@ -558,18 +518,6 @@ export default function SettingsPage() {
                         },
                       })
                     }}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="biometric" className="flex-1">
-                    Login biométrico
-                  </Label>
-                  <Switch
-                    id="biometric"
-                    checked={userData.security?.biometricLogin || false}
-                    disabled={isLoadingBiometric}
-                    onCheckedChange={handleToggleBiometric}
                   />
                 </div>
 

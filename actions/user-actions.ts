@@ -603,36 +603,3 @@ export async function updateUserSettings(userData: any, section: string) {
     throw error
   }
 }
-
-// Add this function to toggle biometric login
-export async function toggleBiometricLogin(enabled: boolean): Promise<{ success: boolean; error?: string }> {
-  try {
-    const userEmail = cookies().get("user_email")?.value
-
-    if (!userEmail) {
-      return { success: false, error: "Usuário não está logado" }
-    }
-
-    // Get the current user data
-    const userData = await getUserByEmail(userEmail)
-
-    if (!userData) {
-      return { success: false, error: "Usuário não encontrado" }
-    }
-
-    // Create or update security settings
-    if (!userData.security) {
-      userData.security = {}
-    }
-
-    userData.security.biometricLogin = enabled
-
-    // Update the user settings
-    await updateUserSettings(userData, "security")
-
-    return { success: true }
-  } catch (error) {
-    console.error("Error toggling biometric login:", error)
-    return { success: false, error: "Erro ao atualizar configurações de biometria" }
-  }
-}
