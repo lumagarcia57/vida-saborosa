@@ -42,7 +42,7 @@ export default function SettingsPage() {
     confirmPassword: "",
   })
 
-  // User data state
+  // Sample user data - in a real app, this would be fetched from the server
   const [userData, setUserData] = useState({
     fullName: "",
     email: "",
@@ -55,6 +55,7 @@ export default function SettingsPage() {
     },
     paymentMethods: [{ id: 1, type: "Cartão de Crédito", last4: "4242", default: true }],
     security: {
+      biometricLogin: false,
       twoFactorAuth: false,
     },
   })
@@ -105,6 +106,7 @@ export default function SettingsPage() {
           },
           paymentMethods: user.paymentMethods || [{ id: 1, type: "Cartão de Crédito", last4: "4242", default: true }],
           security: user.security || {
+            biometricLogin: false,
             twoFactorAuth: false,
           },
         })
@@ -217,6 +219,16 @@ export default function SettingsPage() {
     } finally {
       setIsLoadingPassword(false)
     }
+  }
+
+  const handleToggleBiometric = async (checked: boolean) => {
+    setUserData({
+      ...userData,
+      security: {
+        ...userData.security,
+        biometricLogin: checked,
+      },
+    })
   }
 
   if (isLoadingUserData) {
@@ -499,6 +511,17 @@ export default function SettingsPage() {
                     </form>
                   </DialogContent>
                 </Dialog>
+
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="biometricLogin" className="flex-1">
+                    Login biométrico
+                  </Label>
+                  <Switch
+                    id="biometricLogin"
+                    checked={userData.security?.biometricLogin || false}
+                    onCheckedChange={handleToggleBiometric}
+                  />
+                </div>
 
                 <div className="flex items-center justify-between">
                   <Label htmlFor="twoFactor" className="flex-1">
