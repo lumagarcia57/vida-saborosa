@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Menu, Search, MapPin, ShoppingCart, Filter, User, Settings, LogOut } from "lucide-react"
+import { Search, MapPin, ShoppingCart, Filter, User, Settings, LogOut } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
@@ -39,23 +39,13 @@ export default function Dashboard() {
       {/* Header */}
       <div className="bg-emerald-700 px-4 py-3">
         <div className="flex items-center justify-between">
-          <Button variant="ghost" size="icon" className="text-white hover:bg-emerald-600/20">
-            <Menu className="h-6 w-6" />
-          </Button>
-
-          <div className="text-center">
-            <h1 className="text-2xl font-bold text-white">
-              VIDA <span className="text-yellow-300">SABOROSA</span>
-            </h1>
-          </div>
-
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="rounded-full bg-white p-1">
                 <User className="h-6 w-6 text-emerald-700" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuContent align="start" className="w-56">
               <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => router.push("/configuracoes")}>
@@ -68,6 +58,12 @@ export default function Dashboard() {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-white">
+              VIDA <span className="text-yellow-300">SABOROSA</span>
+            </h1>
+          </div>
+          <div className="w-10"></div> {/* Empty div for spacing balance */}
         </div>
 
         <div className="mt-4">
