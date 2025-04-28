@@ -12,15 +12,6 @@ import { ChevronLeft, Bell, User, CreditCard, Lock, HelpCircle, Save, Key } from
 import { useRouter } from "next/navigation"
 import { toast } from "@/components/ui/use-toast"
 import { updateUserSettings, getUserByEmail, updateUserPassword } from "@/actions/user-actions"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
 
 export default function SettingsPage() {
   const router = useRouter()
@@ -442,65 +433,10 @@ export default function SettingsPage() {
               </div>
 
               <div className="space-y-4">
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button variant="outline" className="w-full">
-                      <Key className="mr-2 h-4 w-4" />
-                      Alterar senha
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-[425px]">
-                    <DialogHeader>
-                      <DialogTitle>Alterar senha</DialogTitle>
-                      <DialogDescription>Preencha os campos abaixo para alterar sua senha.</DialogDescription>
-                    </DialogHeader>
-                    <form onSubmit={handlePasswordChange}>
-                      <div className="grid gap-4 py-4">
-                        <div className="grid gap-2">
-                          <Label htmlFor="currentPassword">Senha atual</Label>
-                          <Input
-                            id="currentPassword"
-                            type="password"
-                            value={passwordData.currentPassword}
-                            onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
-                          />
-                          {passwordErrors.currentPassword && (
-                            <p className="text-red-500 text-sm">{passwordErrors.currentPassword}</p>
-                          )}
-                        </div>
-                        <div className="grid gap-2">
-                          <Label htmlFor="newPassword">Nova senha</Label>
-                          <Input
-                            id="newPassword"
-                            type="password"
-                            value={passwordData.newPassword}
-                            onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
-                          />
-                          {passwordErrors.newPassword && (
-                            <p className="text-red-500 text-sm">{passwordErrors.newPassword}</p>
-                          )}
-                        </div>
-                        <div className="grid gap-2">
-                          <Label htmlFor="confirmPassword">Confirmar nova senha</Label>
-                          <Input
-                            id="confirmPassword"
-                            type="password"
-                            value={passwordData.confirmPassword}
-                            onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
-                          />
-                          {passwordErrors.confirmPassword && (
-                            <p className="text-red-500 text-sm">{passwordErrors.confirmPassword}</p>
-                          )}
-                        </div>
-                      </div>
-                      <DialogFooter>
-                        <Button type="submit" disabled={isLoadingPassword}>
-                          {isLoadingPassword ? "Alterando..." : "Alterar senha"}
-                        </Button>
-                      </DialogFooter>
-                    </form>
-                  </DialogContent>
-                </Dialog>
+                <Button variant="outline" className="w-full" disabled>
+                  <Key className="mr-2 h-4 w-4" />
+                  Alterar senha (Temporariamente indisponível)
+                </Button>
 
                 <div className="flex items-center justify-between">
                   <Label htmlFor="biometricLogin" className="flex-1">
