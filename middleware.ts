@@ -4,11 +4,11 @@ import type { NextRequest } from "next/server"
 export function middleware(request: NextRequest) {
   // For a real app, you would check for a session token here
   // Since we're just simulating authentication for this demo,
-  // we'll allow access to the dashboard without verification
+  // we'll allow access to the dashboard and settings without verification
 
   // In a real application, you would do something like:
   // const token = request.cookies.get('auth_token')
-  // if (!token && request.nextUrl.pathname.startsWith('/dashboard')) {
+  // if (!token && (request.nextUrl.pathname.startsWith('/dashboard') || request.nextUrl.pathname.startsWith('/configuracoes'))) {
   //   return NextResponse.redirect(new URL('/', request.url))
   // }
 
@@ -16,5 +16,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*"],
+  matcher: ["/dashboard/:path*", "/configuracoes/:path*"],
 }
