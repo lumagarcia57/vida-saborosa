@@ -1,33 +1,127 @@
 "use client"
 
-import { useState } from "react"
+import type React from "react"
+
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Switch } from "@/components/ui/switch"
-import { ChevronLeft, Bell, User, CreditCard, Lock, HelpCircle, Save } from "lucide-react"
+import { ChevronLeft, Bell, User, CreditCard, Lock, HelpCircle, Save, Key } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { toast } from "@/components/ui/use-toast"
-import { updateUserSettings } from "@/actions/user-actions"
+import { updateUserSettings, getUserByEmail, updateUserPassword } from "@/actions/user-actions"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 
 export default function SettingsPage() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
+  const [isLoadingPassword, setIsLoadingPassword] = useState(false)
+  const [isLoadingUserData, setIsLoadingUserData] = useState(true)
 
-  // Sample user data - in a real app, this would be fetched from the server
+  // Password change state
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  })
+
+  // Password errors
+  const [passwordErrors, setPasswordErrors] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  })
+
+  // User data state
   const [userData, setUserData] = useState({
-    fullName: "Usuário Exemplo",
-    email: "usuario@exemplo.com",
-    phone: "(11) 99999-9999",
+    fullName: "",
+    email: "",
+    phone: "",
     profileImage: "",
     notifications: {
-      promotions: true,
-      orderUpdates: true,
+      promotions: false,
+      orderUpdates: false,
       newRestaurants: false,
     },
     paymentMethods: [{ id: 1, type: "Cartão de Crédito", last4: "4242", default: true }],
+    security: {
+      twoFactorAuth: false,
+    },
   })
+
+  // Fetch user data on component mount
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        setIsLoadingUserData(true)
+        // Get the user email from cookies (client-side)
+        const cookies = document.cookie.split(";")
+        const emailCookie = cookies.find((cookie) => cookie.trim().startsWith("user_email="))
+
+        if (!emailCookie) {
+          toast({
+            title: "Erro",
+            description: "Usuário não está logado",
+            variant: "destructive",
+          })
+          router.push("/")
+          return
+        }
+
+        const email = decodeURIComponent(emailCookie.split("=")[1])
+
+        // Fetch user data
+        const user = await getUserByEmail(email)
+
+        if (!user) {
+          toast({
+            title: "Erro",
+            description: "Usuário não encontrado",
+            variant: "destructive",
+          })
+          return
+        }
+
+        // Update state with user data
+        setUserData({
+          fullName: user.fullName || "",
+          email: user.email || "",
+          phone: user.phone || "",
+          profileImage: user.profileImage || "",
+          notifications: user.notifications || {
+            promotions: false,
+            orderUpdates: false,
+            newRestaurants: false,
+          },
+          paymentMethods: user.paymentMethods || [{ id: 1, type: "Cartão de Crédito", last4: "4242", default: true }],
+          security: user.security || {
+            twoFactorAuth: false,
+          },
+        })
+      } catch (error) {
+        console.error("Error fetching user data:", error)
+        toast({
+          title: "Erro",
+          description: "Erro ao carregar dados do usuário",
+          variant: "destructive",
+        })
+      } finally {
+        setIsLoadingUserData(false)
+      }
+    }
+
+    fetchUserData()
+  }, [router])
 
   const handleSaveSettings = async (section: string) => {
     setIsLoading(true)
@@ -48,6 +142,89 @@ export default function SettingsPage() {
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const validatePasswordForm = () => {
+    const errors = {
+      currentPassword: "",
+      newPassword: "",
+      confirmPassword: "",
+    }
+    let isValid = true
+
+    if (!passwordData.currentPassword) {
+      errors.currentPassword = "Senha atual é obrigatória"
+      isValid = false
+    }
+
+    if (!passwordData.newPassword) {
+      errors.newPassword = "Nova senha é obrigatória"
+      isValid = false
+    } else if (passwordData.newPassword.length < 6) {
+      errors.newPassword = "A senha deve ter pelo menos 6 caracteres"
+      isValid = false
+    }
+
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      errors.confirmPassword = "As senhas não coincidem"
+      isValid = false
+    }
+
+    setPasswordErrors(errors)
+    return isValid
+  }
+
+  const handlePasswordChange = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    if (!validatePasswordForm()) {
+      return
+    }
+
+    setIsLoadingPassword(true)
+
+    try {
+      const result = await updateUserPassword(userData.email, passwordData.currentPassword, passwordData.newPassword)
+
+      if (result.success) {
+        toast({
+          title: "Senha alterada",
+          description: "Sua senha foi alterada com sucesso.",
+        })
+
+        // Reset form
+        setPasswordData({
+          currentPassword: "",
+          newPassword: "",
+          confirmPassword: "",
+        })
+
+        // Close dialog by clicking the close button
+        document.querySelector("[data-dialog-close]")?.dispatchEvent(new MouseEvent("click", { bubbles: true }))
+      } else {
+        toast({
+          title: "Erro",
+          description: result.error || "Ocorreu um erro ao alterar sua senha.",
+          variant: "destructive",
+        })
+      }
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Ocorreu um erro ao alterar sua senha.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoadingPassword(false)
+    }
+  }
+
+  if (isLoadingUserData) {
+    return (
+      <div className="min-h-screen bg-[#BBF7D0] flex flex-col items-center justify-center">
+        <div className="text-emerald-700 text-lg">Carregando...</div>
+      </div>
+    )
   }
 
   return (
@@ -263,16 +440,93 @@ export default function SettingsPage() {
               </div>
 
               <div className="space-y-4">
-                <Button variant="outline" className="w-full">
-                  Alterar senha
-                </Button>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" className="w-full">
+                      <Key className="mr-2 h-4 w-4" />
+                      Alterar senha
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                      <DialogTitle>Alterar senha</DialogTitle>
+                      <DialogDescription>Preencha os campos abaixo para alterar sua senha.</DialogDescription>
+                    </DialogHeader>
+                    <form onSubmit={handlePasswordChange}>
+                      <div className="grid gap-4 py-4">
+                        <div className="grid gap-2">
+                          <Label htmlFor="currentPassword">Senha atual</Label>
+                          <Input
+                            id="currentPassword"
+                            type="password"
+                            value={passwordData.currentPassword}
+                            onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
+                          />
+                          {passwordErrors.currentPassword && (
+                            <p className="text-red-500 text-sm">{passwordErrors.currentPassword}</p>
+                          )}
+                        </div>
+                        <div className="grid gap-2">
+                          <Label htmlFor="newPassword">Nova senha</Label>
+                          <Input
+                            id="newPassword"
+                            type="password"
+                            value={passwordData.newPassword}
+                            onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
+                          />
+                          {passwordErrors.newPassword && (
+                            <p className="text-red-500 text-sm">{passwordErrors.newPassword}</p>
+                          )}
+                        </div>
+                        <div className="grid gap-2">
+                          <Label htmlFor="confirmPassword">Confirmar nova senha</Label>
+                          <Input
+                            id="confirmPassword"
+                            type="password"
+                            value={passwordData.confirmPassword}
+                            onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
+                          />
+                          {passwordErrors.confirmPassword && (
+                            <p className="text-red-500 text-sm">{passwordErrors.confirmPassword}</p>
+                          )}
+                        </div>
+                      </div>
+                      <DialogFooter>
+                        <Button type="submit" disabled={isLoadingPassword}>
+                          {isLoadingPassword ? "Alterando..." : "Alterar senha"}
+                        </Button>
+                      </DialogFooter>
+                    </form>
+                  </DialogContent>
+                </Dialog>
 
                 <div className="flex items-center justify-between">
                   <Label htmlFor="twoFactor" className="flex-1">
                     Autenticação de dois fatores
                   </Label>
-                  <Switch id="twoFactor" />
+                  <Switch
+                    id="twoFactor"
+                    checked={userData.security?.twoFactorAuth || false}
+                    onCheckedChange={(checked) => {
+                      setUserData({
+                        ...userData,
+                        security: {
+                          ...userData.security,
+                          twoFactorAuth: checked,
+                        },
+                      })
+                    }}
+                  />
                 </div>
+
+                <Button
+                  className="w-full bg-emerald-700 hover:bg-emerald-600 mt-4"
+                  onClick={() => handleSaveSettings("security")}
+                  disabled={isLoading}
+                >
+                  <Save className="mr-2 h-4 w-4" />
+                  Salvar configurações de segurança
+                </Button>
               </div>
             </div>
           </TabsContent>
