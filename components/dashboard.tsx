@@ -43,19 +43,10 @@ export default function Dashboard() {
             <Menu className="h-6 w-6" />
           </Button>
 
-          <div className="flex-1 mx-2">
-            <div className="relative">
-              <Input
-                type="text"
-                placeholder="Procurar hambúrguer, massas, etc..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 pr-4 py-2 rounded-full bg-white border-0 text-sm"
-              />
-              <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-                <Search className="h-4 w-4" />
-              </div>
-            </div>
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-white">
+              VIDA <span className="text-yellow-300">SABOROSA</span>
+            </h1>
           </div>
 
           <DropdownMenu>
@@ -79,10 +70,19 @@ export default function Dashboard() {
           </DropdownMenu>
         </div>
 
-        <div className="mt-4 text-center">
-          <h1 className="text-2xl font-bold text-white">
-            VIDA <span className="text-yellow-300">SABOROSA</span>
-          </h1>
+        <div className="mt-4">
+          <div className="relative">
+            <Input
+              type="text"
+              placeholder="Procurar hambúrguer, massas, etc..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 pr-4 py-2 rounded-full bg-white border-0 text-sm"
+            />
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+              <Search className="h-4 w-4" />
+            </div>
+          </div>
         </div>
 
         {/* Category buttons */}
