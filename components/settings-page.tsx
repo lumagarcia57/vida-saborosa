@@ -42,7 +42,7 @@ export default function SettingsPage() {
     confirmPassword: "",
   })
 
-  // Sample user data - in a real app, this would be fetched from the server
+  // User data state
   const [userData, setUserData] = useState({
     fullName: "",
     email: "",
@@ -221,16 +221,6 @@ export default function SettingsPage() {
     }
   }
 
-  const handleToggleBiometric = async (checked: boolean) => {
-    setUserData({
-      ...userData,
-      security: {
-        ...userData.security,
-        biometricLogin: checked,
-      },
-    })
-  }
-
   if (isLoadingUserData) {
     return (
       <div className="min-h-screen bg-[#BBF7D0] flex flex-col items-center justify-center">
@@ -259,10 +249,10 @@ export default function SettingsPage() {
 
       {/* Settings Content */}
       <div className="flex-1 px-4 py-6">
-        <Tabs defaultValue="notifications" className="w-full">
+        <Tabs defaultValue="profile" className="w-full">
           <TabsList className="grid grid-cols-3 mb-8">
-            <TabsTrigger value="notifications">Notificações</TabsTrigger>
             <TabsTrigger value="profile">Perfil</TabsTrigger>
+            <TabsTrigger value="notifications">Notificações</TabsTrigger>
             <TabsTrigger value="payment">Pagamento</TabsTrigger>
           </TabsList>
           <TabsList className="grid grid-cols-3 mb-8">
@@ -270,6 +260,66 @@ export default function SettingsPage() {
             <TabsTrigger value="support">Suporte</TabsTrigger>
             <TabsTrigger value="about">Sobre</TabsTrigger>
           </TabsList>
+
+          {/* Profile Tab */}
+          <TabsContent value="profile" className="space-y-4">
+            <div className="bg-white rounded-xl p-6 shadow-sm">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center">
+                  <User className="h-6 w-6 mr-3 text-emerald-700" />
+                  <h2 className="text-xl font-semibold">Dados Pessoais</h2>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div className="flex flex-col items-center mb-6">
+                  <div className="w-24 h-24 rounded-full bg-emerald-100 flex items-center justify-center mb-2">
+                    <User className="h-12 w-12 text-emerald-700" />
+                  </div>
+                  <Button variant="outline" size="sm">
+                    Alterar foto
+                  </Button>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="fullName">Nome completo</Label>
+                  <Input
+                    id="fullName"
+                    value={userData.fullName}
+                    onChange={(e) => setUserData({ ...userData, fullName: e.target.value })}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={userData.email}
+                    onChange={(e) => setUserData({ ...userData, email: e.target.value })}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Telefone</Label>
+                  <Input
+                    id="phone"
+                    value={userData.phone}
+                    onChange={(e) => setUserData({ ...userData, phone: e.target.value })}
+                  />
+                </div>
+
+                <Button
+                  className="w-full bg-emerald-700 hover:bg-emerald-600 mt-4"
+                  onClick={() => handleSaveSettings("profile")}
+                  disabled={isLoading}
+                >
+                  <Save className="mr-2 h-4 w-4" />
+                  Salvar alterações
+                </Button>
+              </div>
+            </div>
+          </TabsContent>
 
           {/* Notifications Tab */}
           <TabsContent value="notifications" className="space-y-4">
@@ -346,66 +396,6 @@ export default function SettingsPage() {
                 >
                   <Save className="mr-2 h-4 w-4" />
                   Salvar preferências
-                </Button>
-              </div>
-            </div>
-          </TabsContent>
-
-          {/* Profile Tab */}
-          <TabsContent value="profile" className="space-y-4">
-            <div className="bg-white rounded-xl p-6 shadow-sm">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center">
-                  <User className="h-6 w-6 mr-3 text-emerald-700" />
-                  <h2 className="text-xl font-semibold">Dados Pessoais</h2>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <div className="flex flex-col items-center mb-6">
-                  <div className="w-24 h-24 rounded-full bg-emerald-100 flex items-center justify-center mb-2">
-                    <User className="h-12 w-12 text-emerald-700" />
-                  </div>
-                  <Button variant="outline" size="sm">
-                    Alterar foto
-                  </Button>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="fullName">Nome completo</Label>
-                  <Input
-                    id="fullName"
-                    value={userData.fullName}
-                    onChange={(e) => setUserData({ ...userData, fullName: e.target.value })}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={userData.email}
-                    onChange={(e) => setUserData({ ...userData, email: e.target.value })}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Telefone</Label>
-                  <Input
-                    id="phone"
-                    value={userData.phone}
-                    onChange={(e) => setUserData({ ...userData, phone: e.target.value })}
-                  />
-                </div>
-
-                <Button
-                  className="w-full bg-emerald-700 hover:bg-emerald-600 mt-4"
-                  onClick={() => handleSaveSettings("profile")}
-                  disabled={isLoading}
-                >
-                  <Save className="mr-2 h-4 w-4" />
-                  Salvar alterações
                 </Button>
               </div>
             </div>
@@ -519,7 +509,15 @@ export default function SettingsPage() {
                   <Switch
                     id="biometricLogin"
                     checked={userData.security?.biometricLogin || false}
-                    onCheckedChange={handleToggleBiometric}
+                    onCheckedChange={(checked) => {
+                      setUserData({
+                        ...userData,
+                        security: {
+                          ...userData.security,
+                          biometricLogin: checked,
+                        },
+                      })
+                    }}
                   />
                 </div>
 
