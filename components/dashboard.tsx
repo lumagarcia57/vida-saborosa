@@ -63,7 +63,9 @@ export default function Dashboard() {
               VIDA <span className="text-yellow-300">SABOROSA</span>
             </h1>
           </div>
-          <div className="w-10"></div> {/* Empty div for spacing balance */}
+          <Button variant="ghost" size="icon" className="rounded-full bg-white p-1">
+            <ShoppingCart className="h-6 w-6 text-emerald-700" />
+          </Button>
         </div>
 
         <div className="mt-4">
@@ -81,7 +83,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Category buttons */}
+        {/* Category buttons - reverted to original layout */}
         <div className="flex justify-between gap-2 mt-4 pb-2">
           <Button
             className="flex-1 bg-lime-200 hover:bg-lime-300 text-emerald-800 text-xs rounded-md py-1 h-auto"
@@ -114,9 +116,7 @@ export default function Dashboard() {
           <Button variant="ghost" size="icon" className="text-white hover:bg-emerald-600/20">
             <MapPin className="h-6 w-6" />
           </Button>
-          <Button variant="ghost" size="icon" className="text-white hover:bg-emerald-600/20">
-            <ShoppingCart className="h-6 w-6" />
-          </Button>
+          <div className="w-6"></div> {/* Empty div for spacing balance */}
           <Button variant="ghost" size="icon" className="text-white hover:bg-emerald-600/20">
             <Filter className="h-6 w-6" />
           </Button>
