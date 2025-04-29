@@ -2,10 +2,18 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { ChevronLeft, Menu, Star, Clock, MapPin } from "lucide-react"
+import { ChevronLeft, Menu, Star, Clock, MapPin, User, ShoppingCart, ClipboardList, Home } from "lucide-react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 type Restaurant = {
   id: string
@@ -36,6 +44,7 @@ export default function RestaurantList({ category, restaurants }: RestaurantList
     <div className="min-h-screen flex flex-col bg-[#BBF7D0]">
       {/* Header */}
       <div className="bg-emerald-700 px-4 py-3">
+        {/* Logo row with navigation buttons */}
         <div className="flex items-center justify-between mb-4">
           <Button
             variant="ghost"
@@ -45,16 +54,44 @@ export default function RestaurantList({ category, restaurants }: RestaurantList
           >
             <ChevronLeft className="h-6 w-6" />
           </Button>
-          <h1 className="text-white text-xl font-bold">{category}</h1>
-          <Button variant="ghost" size="icon" className="text-white hover:bg-emerald-600/20">
-            <Menu className="h-6 w-6" />
-          </Button>
-        </div>
 
-        <div className="mt-4 text-center">
           <h1 className="text-2xl font-bold text-white">
             VIDA <span className="text-yellow-300">SABOROSA</span>
           </h1>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="text-white hover:bg-emerald-600/20">
+                <Menu className="h-6 w-6" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel>Menu</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => router.push("/configuracoes")}>
+                <User className="mr-2 h-4 w-4" />
+                <span>Minha conta</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => router.push("/carrinho")}>
+                <ShoppingCart className="mr-2 h-4 w-4" />
+                <span>Meu carrinho</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => router.push("/pedidos")}>
+                <ClipboardList className="mr-2 h-4 w-4" />
+                <span>Meus pedidos</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => router.push("/dashboard")}>
+                <Home className="mr-2 h-4 w-4" />
+                <span>Menu principal</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+
+        {/* Category title row */}
+        <div className="text-center mt-2">
+          <h2 className="text-xl font-bold text-white">{category}</h2>
         </div>
       </div>
 
@@ -62,7 +99,7 @@ export default function RestaurantList({ category, restaurants }: RestaurantList
       <div className="flex-1 px-4 py-6">
         <h2 className="text-xl font-bold mb-4">Restaurantes - {category}</h2>
 
-        <div className="space-y-4">
+        <div className="space-y-8">
           {filteredRestaurants.length > 0 ? (
             filteredRestaurants.map((restaurant) => (
               <Link href={`/restaurant/${restaurant.id}`} key={restaurant.id}>

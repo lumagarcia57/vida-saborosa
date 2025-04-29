@@ -83,7 +83,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Category buttons - reverted to original layout */}
+        {/* Category buttons */}
         <div className="flex justify-between gap-2 mt-4 pb-2">
           <Button
             className="flex-1 bg-lime-200 hover:bg-lime-300 text-emerald-800 text-xs rounded-md py-1 h-auto"
