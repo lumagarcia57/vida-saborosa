@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { getRestaurantById } from "@/data/restaurants"
 import { Button } from "@/components/ui/button"
 import { ChevronLeft, Star, Clock, MapPin, Plus, Minus, ShoppingCart } from "lucide-react"
@@ -55,8 +55,20 @@ const menuItems = [
 export default function RestaurantPage({ params }: { params: { id: string } }) {
   const router = useRouter()
   const restaurant = getRestaurantById(params.id)
-  const [cart, setCart] = useState<{ id: number; name: string; price: number; quantity: number }[]>([])
+  const [cart, setCart] = useState<{ id: number; name: string; price: number; quantity: number; image?: string }[]>([])
   const [selectedItem, setSelectedItem] = useState<any>(null)
+
+  useEffect(() => {
+    // Load cart data from localStorage when component mounts
+    try {
+      const savedCart = localStorage.getItem("cart")
+      if (savedCart) {
+        setCart(JSON.parse(savedCart))
+      }
+    } catch (error) {
+      console.error("Error loading cart from localStorage:", error)
+    }
+  }, [])
 
   if (!restaurant) {
     notFound()
@@ -66,23 +78,30 @@ export default function RestaurantPage({ params }: { params: { id: string } }) {
     setCart((prevCart) => {
       const existingItem = prevCart.find((cartItem) => cartItem.id === item.id)
 
+      let updatedCart
       if (existingItem) {
         // Update quantity if item already exists
-        return prevCart.map((cartItem) =>
+        updatedCart = prevCart.map((cartItem) =>
           cartItem.id === item.id ? { ...cartItem, quantity: cartItem.quantity + 1 } : cartItem,
         )
       } else {
         // Add new item to cart
-        return [
+        updatedCart = [
           ...prevCart,
           {
             id: item.id,
             name: item.name,
             price: item.price,
             quantity: 1,
+            image: item.image,
           },
         ]
       }
+
+      // Save to localStorage
+      localStorage.setItem("cart", JSON.stringify(updatedCart))
+
+      return updatedCart
     })
   }
 
@@ -90,13 +109,19 @@ export default function RestaurantPage({ params }: { params: { id: string } }) {
     setCart((prevCart) => {
       const existingItem = prevCart.find((item) => item.id === itemId)
 
+      let updatedCart
       if (existingItem && existingItem.quantity > 1) {
         // Decrease quantity if more than 1
-        return prevCart.map((item) => (item.id === itemId ? { ...item, quantity: item.quantity - 1 } : item))
+        updatedCart = prevCart.map((item) => (item.id === itemId ? { ...item, quantity: item.quantity - 1 } : item))
       } else {
         // Remove item from cart if quantity is 1
-        return prevCart.filter((item) => item.id !== itemId)
+        updatedCart = prevCart.filter((item) => item.id !== itemId)
       }
+
+      // Save to localStorage
+      localStorage.setItem("cart", JSON.stringify(updatedCart))
+
+      return updatedCart
     })
   }
 

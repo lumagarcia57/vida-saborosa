@@ -52,6 +52,10 @@ export default function Dashboard() {
                 <Settings className="mr-2 h-4 w-4" />
                 <span>Configurações</span>
               </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => router.push("/carrinho")}>
+                <ShoppingCart className="mr-2 h-4 w-4" />
+                <span>Meu carrinho</span>
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={handleLogout}>
                 <LogOut className="mr-2 h-4 w-4" />
                 <span>Sair do app</span>
@@ -63,7 +67,12 @@ export default function Dashboard() {
               VIDA <span className="text-yellow-300">SABOROSA</span>
             </h1>
           </div>
-          <Button variant="ghost" size="icon" className="rounded-full bg-white p-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="rounded-full bg-white p-1"
+            onClick={() => router.push("/carrinho")}
+          >
             <ShoppingCart className="h-6 w-6 text-emerald-700" />
           </Button>
         </div>
@@ -83,41 +92,54 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Category buttons */}
-        <div className="flex justify-between gap-2 mt-4 pb-2">
-          <Button
-            className="flex-1 bg-lime-200 hover:bg-lime-300 text-emerald-800 text-xs rounded-md py-1 h-auto"
-            onClick={() => router.push("/categoria/hamburguer")}
-          >
-            Hambúrguer
-          </Button>
-          <Button
-            className="flex-1 bg-lime-200 hover:bg-lime-300 text-emerald-800 text-xs rounded-md py-1 h-auto"
-            onClick={() => router.push("/categoria/bebidas")}
-          >
-            Bebidas
-          </Button>
-          <Button
-            className="flex-1 bg-lime-200 hover:bg-lime-300 text-emerald-800 text-xs rounded-md py-1 h-auto"
-            onClick={() => router.push("/categoria/lanche")}
-          >
-            Lanche
-          </Button>
-          <Button
-            className="flex-1 bg-lime-200 hover:bg-lime-300 text-emerald-800 text-xs rounded-md py-1 h-auto"
-            onClick={() => router.push("/categoria/saudavel")}
-          >
-            Saudável
-          </Button>
-        </div>
-
-        {/* Navigation icons */}
-        <div className="flex justify-between mt-4 pb-2">
-          <Button variant="ghost" size="icon" className="text-white hover:bg-emerald-600/20">
+        {/* Category buttons with location and filter icons */}
+        <div className="flex items-center justify-between mt-4 pb-2">
+          <Button variant="ghost" size="icon" className="text-white hover:bg-emerald-600/20 mr-1">
             <MapPin className="h-6 w-6" />
           </Button>
-          <div className="w-6"></div> {/* Empty div for spacing balance */}
-          <Button variant="ghost" size="icon" className="text-white hover:bg-emerald-600/20">
+
+          <div className="flex-1 overflow-x-auto scrollbar-hide">
+            <div className="flex gap-2 pb-1 min-w-min">
+              <Button
+                className="min-w-[90px] bg-lime-200 hover:bg-lime-300 text-emerald-800 text-xs rounded-md py-1 h-auto whitespace-nowrap"
+                onClick={() => router.push("/categoria/hamburguer")}
+              >
+                Hambúrguer
+              </Button>
+              <Button
+                className="min-w-[90px] bg-lime-200 hover:bg-lime-300 text-emerald-800 text-xs rounded-md py-1 h-auto whitespace-nowrap"
+                onClick={() => router.push("/categoria/bebidas")}
+              >
+                Bebidas
+              </Button>
+              <Button
+                className="min-w-[90px] bg-lime-200 hover:bg-lime-300 text-emerald-800 text-xs rounded-md py-1 h-auto whitespace-nowrap"
+                onClick={() => router.push("/categoria/lanche")}
+              >
+                Lanche
+              </Button>
+              <Button
+                className="min-w-[90px] bg-lime-200 hover:bg-lime-300 text-emerald-800 text-xs rounded-md py-1 h-auto whitespace-nowrap"
+                onClick={() => router.push("/categoria/saudavel")}
+              >
+                Saudável
+              </Button>
+              <Button
+                className="min-w-[90px] bg-lime-200 hover:bg-lime-300 text-emerald-800 text-xs rounded-md py-1 h-auto whitespace-nowrap"
+                onClick={() => router.push("/categoria/pizza")}
+              >
+                Pizza
+              </Button>
+              <Button
+                className="min-w-[90px] bg-lime-200 hover:bg-lime-300 text-emerald-800 text-xs rounded-md py-1 h-auto whitespace-nowrap"
+                onClick={() => router.push("/categoria/sobremesas")}
+              >
+                Sobremesas
+              </Button>
+            </div>
+          </div>
+
+          <Button variant="ghost" size="icon" className="text-white hover:bg-emerald-600/20 ml-1">
             <Filter className="h-6 w-6" />
           </Button>
         </div>

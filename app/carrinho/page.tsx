@@ -15,26 +15,21 @@ export default function CartPage() {
 
   // Simulating cart data - in a real app, this would come from a state management solution
   useEffect(() => {
-    // Simulating loading cart data
-    setTimeout(() => {
-      setCart([
-        {
-          id: 1,
-          name: "Hambúrguer Clássico",
-          price: 25.9,
-          quantity: 2,
-          image: "/placeholder.svg?height=100&width=100",
-        },
-        {
-          id: 3,
-          name: "Milk Shake de Chocolate",
-          price: 18.5,
-          quantity: 1,
-          image: "/placeholder.svg?height=100&width=100",
-        },
-      ])
+    setIsLoading(true)
+    try {
+      const savedCart = localStorage.getItem("cart")
+      if (savedCart) {
+        setCart(JSON.parse(savedCart))
+      } else {
+        // Initialize with empty cart if nothing is saved
+        setCart([])
+      }
+    } catch (error) {
+      console.error("Error loading cart from localStorage:", error)
+      setCart([])
+    } finally {
       setIsLoading(false)
-    }, 500)
+    }
   }, [])
 
   const updateQuantity = (itemId: number, newQuantity: number) => {
@@ -43,11 +38,19 @@ export default function CartPage() {
       return
     }
 
-    setCart((prevCart) => prevCart.map((item) => (item.id === itemId ? { ...item, quantity: newQuantity } : item)))
+    const updatedCart = cart.map((item) => (item.id === itemId ? { ...item, quantity: newQuantity } : item))
+    setCart(updatedCart)
+
+    // Save to localStorage
+    localStorage.setItem("cart", JSON.stringify(updatedCart))
   }
 
   const removeItem = (itemId: number) => {
-    setCart((prevCart) => prevCart.filter((item) => item.id !== itemId))
+    const updatedCart = cart.filter((item) => item.id !== itemId)
+    setCart(updatedCart)
+
+    // Save to localStorage
+    localStorage.setItem("cart", JSON.stringify(updatedCart))
   }
 
   const getTotalPrice = () => {
@@ -106,49 +109,61 @@ export default function CartPage() {
         ) : (
           <>
             <div className="space-y-4 mb-6">
-              {cart.map((item) => (
-                <div key={item.id} className="bg-white rounded-lg p-4 flex items-center">
-                  <div className="h-16 w-16 relative mr-3">
-                    <Image
-                      src={item.image || "/placeholder.svg"}
-                      alt={item.name}
-                      fill
-                      className="object-cover rounded-md"
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-medium">{item.name}</h3>
-                    <p className="text-emerald-700 font-medium">R$ {item.price.toFixed(2).replace(".", ",")}</p>
-                  </div>
-                  <div className="flex items-center">
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="h-8 w-8 rounded-full"
-                      onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                    >
-                      <Minus className="h-4 w-4" />
-                    </Button>
-                    <span className="mx-2 font-medium">{item.quantity}</span>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="h-8 w-8 rounded-full"
-                      onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                    >
-                      <Plus className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="ml-2 text-red-500 hover:text-red-700 hover:bg-red-50"
-                      onClick={() => removeItem(item.id)}
-                    >
-                      <Trash2 className="h-5 w-5" />
-                    </Button>
-                  </div>
+              {cart.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-gray-500">Nenhum produto selecionado ainda.</p>
+                  <Button
+                    className="mt-4 bg-emerald-700 hover:bg-emerald-600"
+                    onClick={() => router.push("/dashboard")}
+                  >
+                    Explorar restaurantes
+                  </Button>
                 </div>
-              ))}
+              ) : (
+                cart.map((item) => (
+                  <div key={item.id} className="bg-white rounded-lg p-4 flex items-center">
+                    <div className="h-16 w-16 relative mr-3">
+                      <Image
+                        src={item.image || "/placeholder.svg"}
+                        alt={item.name}
+                        fill
+                        className="object-cover rounded-md"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-medium">{item.name}</h3>
+                      <p className="text-emerald-700 font-medium">R$ {item.price.toFixed(2).replace(".", ",")}</p>
+                    </div>
+                    <div className="flex items-center">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-8 w-8 rounded-full"
+                        onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                      >
+                        <Minus className="h-4 w-4" />
+                      </Button>
+                      <span className="mx-2 font-medium">{item.quantity}</span>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-8 w-8 rounded-full"
+                        onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="ml-2 text-red-500 hover:text-red-700 hover:bg-red-50"
+                        onClick={() => removeItem(item.id)}
+                      >
+                        <Trash2 className="h-5 w-5" />
+                      </Button>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
 
             {/* Order Summary */}
