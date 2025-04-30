@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { ChevronLeft, Menu, Star, Clock, MapPin, User, ShoppingCart, ClipboardList, Home } from "lucide-react"
+import { ChevronLeft, Menu, Star, Clock, MapPin, User, ShoppingCart, ClipboardList, Home, Heart } from "lucide-react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
@@ -79,6 +79,10 @@ export default function RestaurantList({ category, restaurants }: RestaurantList
               <DropdownMenuItem onClick={() => router.push("/pedidos")}>
                 <ClipboardList className="mr-2 h-4 w-4" />
                 <span>Meus pedidos</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => router.push("/favoritos")}>
+                <Heart className="mr-2 h-4 w-4" />
+                <span>Favoritos</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => router.push("/dashboard")}>

@@ -1,16 +1,17 @@
 "use client"
 
+import { DropdownMenuItem } from "@/components/ui/dropdown-menu"
+
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Search, MapPin, ShoppingCart, Filter, User, Settings, LogOut } from "lucide-react"
+import { Search, MapPin, ShoppingCart, Filter, User, Settings, LogOut, ClipboardList, Heart } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
@@ -55,6 +56,14 @@ export default function Dashboard() {
               <DropdownMenuItem onClick={() => router.push("/carrinho")}>
                 <ShoppingCart className="mr-2 h-4 w-4" />
                 <span>Meu carrinho</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => router.push("/pedidos")}>
+                <ClipboardList className="mr-2 h-4 w-4" />
+                <span>Meus pedidos</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => router.push("/favoritos")}>
+                <Heart className="mr-2 h-4 w-4" />
+                <span>Favoritos</span>
               </DropdownMenuItem>
               <DropdownMenuItem onClick={handleLogout}>
                 <LogOut className="mr-2 h-4 w-4" />
