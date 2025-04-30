@@ -1,15 +1,116 @@
+"use client"
+
+import { useState } from "react"
 import { getRestaurantById } from "@/data/restaurants"
 import { Button } from "@/components/ui/button"
-import { ChevronLeft, Star, Clock, MapPin } from "lucide-react"
+import { ChevronLeft, Star, Clock, MapPin, Plus, Minus, ShoppingCart } from "lucide-react"
 import Image from "next/image"
-import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { notFound } from "next/navigation"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+
+// Sample menu items data
+const menuItems = [
+  {
+    id: 1,
+    name: "Hambúrguer Clássico",
+    description: "Hambúrguer de carne bovina, queijo cheddar, alface, tomate e molho especial.",
+    price: 25.9,
+    image: "/placeholder.svg?height=200&width=200",
+    category: "Hambúrgueres",
+  },
+  {
+    id: 2,
+    name: "Batata Frita Grande",
+    description: "Porção grande de batatas fritas crocantes com sal e temperos especiais.",
+    price: 15.9,
+    image: "/placeholder.svg?height=200&width=200",
+    category: "Acompanhamentos",
+  },
+  {
+    id: 3,
+    name: "Milk Shake de Chocolate",
+    description: "Milk shake cremoso de chocolate com calda e chantilly.",
+    price: 18.5,
+    image: "/placeholder.svg?height=200&width=200",
+    category: "Bebidas",
+  },
+  {
+    id: 4,
+    name: "Combo Família",
+    description: "4 hambúrgueres, 2 batatas grandes, 4 refrigerantes e 2 sobremesas.",
+    price: 89.9,
+    image: "/placeholder.svg?height=200&width=200",
+    category: "Combos",
+  },
+]
 
 export default function RestaurantPage({ params }: { params: { id: string } }) {
+  const router = useRouter()
   const restaurant = getRestaurantById(params.id)
+  const [cart, setCart] = useState<{ id: number; name: string; price: number; quantity: number }[]>([])
+  const [selectedItem, setSelectedItem] = useState<any>(null)
 
   if (!restaurant) {
     notFound()
+  }
+
+  const addToCart = (item: any) => {
+    setCart((prevCart) => {
+      const existingItem = prevCart.find((cartItem) => cartItem.id === item.id)
+
+      if (existingItem) {
+        // Update quantity if item already exists
+        return prevCart.map((cartItem) =>
+          cartItem.id === item.id ? { ...cartItem, quantity: cartItem.quantity + 1 } : cartItem,
+        )
+      } else {
+        // Add new item to cart
+        return [
+          ...prevCart,
+          {
+            id: item.id,
+            name: item.name,
+            price: item.price,
+            quantity: 1,
+          },
+        ]
+      }
+    })
+  }
+
+  const removeFromCart = (itemId: number) => {
+    setCart((prevCart) => {
+      const existingItem = prevCart.find((item) => item.id === itemId)
+
+      if (existingItem && existingItem.quantity > 1) {
+        // Decrease quantity if more than 1
+        return prevCart.map((item) => (item.id === itemId ? { ...item, quantity: item.quantity - 1 } : item))
+      } else {
+        // Remove item from cart if quantity is 1
+        return prevCart.filter((item) => item.id !== itemId)
+      }
+    })
+  }
+
+  const getItemQuantityInCart = (itemId: number) => {
+    const item = cart.find((item) => item.id === itemId)
+    return item ? item.quantity : 0
+  }
+
+  const getTotalPrice = () => {
+    return cart.reduce((total, item) => total + item.price * item.quantity, 0)
+  }
+
+  const getTotalItems = () => {
+    return cart.reduce((total, item) => total + item.quantity, 0)
   }
 
   return (
@@ -19,11 +120,9 @@ export default function RestaurantPage({ params }: { params: { id: string } }) {
         <Image src={restaurant.image || "/placeholder.svg"} alt={restaurant.name} fill className="object-cover" />
         <div className="absolute inset-0 bg-gradient-to-b from-black/60 to-transparent">
           <div className="p-4">
-            <Link href="/dashboard">
-              <Button variant="ghost" size="icon" className="text-white hover:bg-white/20">
-                <ChevronLeft className="h-6 w-6" />
-              </Button>
-            </Link>
+            <Button variant="ghost" size="icon" className="text-white hover:bg-white/20" onClick={() => router.back()}>
+              <ChevronLeft className="h-6 w-6" />
+            </Button>
           </div>
         </div>
       </div>
@@ -57,30 +156,111 @@ export default function RestaurantPage({ params }: { params: { id: string } }) {
           <span className="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded-full">{restaurant.priceRange}</span>
         </div>
 
-        {/* Menu sections - placeholder */}
+        {/* Menu sections */}
         <div className="mt-8">
           <h2 className="text-xl font-bold mb-4">Menu</h2>
 
           <div className="space-y-4">
-            {/* Placeholder menu items */}
-            {[1, 2, 3, 4].map((item) => (
-              <div key={item} className="bg-gray-50 p-4 rounded-lg flex justify-between">
-                <div>
-                  <h3 className="font-medium">Item do Menu #{item}</h3>
-                  <p className="text-sm text-gray-500 mt-1">Descrição do item do menu</p>
-                  <p className="text-emerald-700 font-medium mt-2">R$ {(Math.random() * 30 + 10).toFixed(2)}</p>
+            {menuItems.map((item) => (
+              <div key={item.id} className="bg-gray-50 p-4 rounded-lg">
+                <div className="flex justify-between">
+                  <div className="flex-1">
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <h3
+                          className="font-medium text-emerald-700 cursor-pointer hover:underline"
+                          onClick={() => setSelectedItem(item)}
+                        >
+                          {item.name}
+                        </h3>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>{item.name}</DialogTitle>
+                          <DialogDescription className="pt-4">
+                            <div className="flex flex-col items-center mb-4">
+                              <div className="relative h-40 w-40 mb-4">
+                                <Image
+                                  src={item.image || "/placeholder.svg"}
+                                  alt={item.name}
+                                  fill
+                                  className="object-cover rounded-lg"
+                                />
+                              </div>
+                              <p className="text-center mb-4">{item.description}</p>
+                              <p className="text-emerald-700 font-bold text-xl">
+                                R$ {item.price.toFixed(2).replace(".", ",")}
+                              </p>
+                            </div>
+                            <div className="flex justify-center mt-4">
+                              <Button
+                                className="bg-emerald-700 hover:bg-emerald-600"
+                                onClick={() => {
+                                  addToCart(item)
+                                }}
+                              >
+                                Adicionar ao carrinho
+                              </Button>
+                            </div>
+                          </DialogDescription>
+                        </DialogHeader>
+                      </DialogContent>
+                    </Dialog>
+                    <p className="text-sm text-gray-500 mt-1 line-clamp-2">{item.description}</p>
+                    <p className="text-emerald-700 font-medium mt-2">R$ {item.price.toFixed(2).replace(".", ",")}</p>
+                  </div>
+                  <div className="flex flex-col items-end justify-between">
+                    <div className="h-20 w-20 bg-gray-200 rounded-md relative overflow-hidden">
+                      <Image src={item.image || "/placeholder.svg"} alt={item.name} fill className="object-cover" />
+                    </div>
+                    <div className="flex items-center mt-2">
+                      {getItemQuantityInCart(item.id) > 0 && (
+                        <>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            className="h-8 w-8 rounded-full"
+                            onClick={() => removeFromCart(item.id)}
+                          >
+                            <Minus className="h-4 w-4" />
+                          </Button>
+                          <span className="mx-2 font-medium">{getItemQuantityInCart(item.id)}</span>
+                        </>
+                      )}
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-8 w-8 rounded-full bg-emerald-700 text-white hover:bg-emerald-600 border-0"
+                        onClick={() => addToCart(item)}
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
                 </div>
-                <div className="h-20 w-20 bg-gray-200 rounded-md"></div>
               </div>
             ))}
           </div>
         </div>
       </div>
 
-      {/* Sticky order button */}
-      <div className="sticky bottom-0 bg-white p-4 border-t">
-        <Button className="w-full bg-emerald-700 hover:bg-emerald-600">Ver Carrinho</Button>
-      </div>
+      {/* Sticky cart button */}
+      {cart.length > 0 && (
+        <div className="sticky bottom-0 bg-white p-4 border-t shadow-md">
+          <Button
+            className="w-full bg-emerald-700 hover:bg-emerald-600 flex justify-between items-center"
+            onClick={() => router.push("/carrinho")}
+          >
+            <div className="flex items-center">
+              <ShoppingCart className="mr-2 h-5 w-5" />
+              <span>
+                {getTotalItems()} {getTotalItems() === 1 ? "item" : "itens"}
+              </span>
+            </div>
+            <span>R$ {getTotalPrice().toFixed(2).replace(".", ",")}</span>
+          </Button>
+        </div>
+      )}
     </div>
   )
 }
