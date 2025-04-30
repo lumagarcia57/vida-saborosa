@@ -1,6 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import type React from "react"
+
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { ChevronLeft, Menu, Star, Clock, MapPin, User, ShoppingCart, ClipboardList, Home, Heart } from "lucide-react"
 import { useRouter } from "next/navigation"
@@ -35,6 +37,32 @@ type RestaurantListProps = {
 export default function RestaurantList({ category, restaurants }: RestaurantListProps) {
   const router = useRouter()
   const [searchQuery, setSearchQuery] = useState("")
+  const [favorites, setFavorites] = useState<Record<string, boolean>>({})
+
+  useEffect(() => {
+    try {
+      const savedFavorites = localStorage.getItem("favoriteRestaurants")
+      if (savedFavorites) {
+        setFavorites(JSON.parse(savedFavorites))
+      }
+    } catch (error) {
+      console.error("Error loading favorites from localStorage:", error)
+    }
+  }, [])
+
+  const toggleFavorite = (e: React.MouseEvent, restaurantId: string) => {
+    e.preventDefault()
+    e.stopPropagation()
+
+    const newFavorites = {
+      ...favorites,
+      [restaurantId]: !favorites[restaurantId],
+    }
+
+    setFavorites(newFavorites)
+
+    localStorage.setItem("favoriteRestaurants", JSON.stringify(newFavorites))
+  }
 
   const filteredRestaurants = restaurants.filter((restaurant) =>
     restaurant.name.toLowerCase().includes(searchQuery.toLowerCase()),
@@ -119,9 +147,22 @@ export default function RestaurantList({ category, restaurants }: RestaurantList
                   <div className="p-4">
                     <div className="flex justify-between items-start">
                       <h3 className="text-lg font-bold">{restaurant.name}</h3>
-                      <div className="flex items-center bg-yellow-100 px-2 py-1 rounded-full">
-                        <Star className="h-4 w-4 text-yellow-500 mr-1" fill="currentColor" />
-                        <span className="text-sm font-medium">{restaurant.rating}</span>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={(e) => toggleFavorite(e, restaurant.id)}
+                          className="text-gray-400 hover:text-red-500 transition-colors"
+                          aria-label={favorites[restaurant.id] ? "Remover dos favoritos" : "Adicionar aos favoritos"}
+                        >
+                          <Heart
+                            className="h-5 w-5"
+                            fill={favorites[restaurant.id] ? "currentColor" : "none"}
+                            stroke={favorites[restaurant.id] ? "none" : "currentColor"}
+                          />
+                        </button>
+                        <div className="flex items-center bg-yellow-100 px-2 py-1 rounded-full">
+                          <Star className="h-4 w-4 text-yellow-500 mr-1" fill="currentColor" />
+                          <span className="text-sm font-medium">{restaurant.rating}</span>
+                        </div>
                       </div>
                     </div>
 

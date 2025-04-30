@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { getRestaurantById } from "@/data/restaurants"
 import { Button } from "@/components/ui/button"
-import { ChevronLeft, Star, Clock, MapPin, Plus, Minus, ShoppingCart } from "lucide-react"
+import { ChevronLeft, Star, Clock, MapPin, Plus, Minus, ShoppingCart, Heart } from "lucide-react"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { notFound } from "next/navigation"
@@ -57,6 +57,32 @@ export default function RestaurantPage({ params }: { params: { id: string } }) {
   const restaurant = getRestaurantById(params.id)
   const [cart, setCart] = useState<{ id: number; name: string; price: number; quantity: number; image?: string }[]>([])
   const [selectedItem, setSelectedItem] = useState<any>(null)
+  const [favoriteItems, setFavoriteItems] = useState<Record<number, boolean>>({})
+
+  // Carregar favoritos do localStorage quando o componente montar
+  useEffect(() => {
+    try {
+      const savedFavorites = localStorage.getItem("favoriteItems")
+      if (savedFavorites) {
+        setFavoriteItems(JSON.parse(savedFavorites))
+      }
+    } catch (error) {
+      console.error("Error loading favorite items from localStorage:", error)
+    }
+  }, [])
+
+  // Função para alternar o status de favorito
+  const toggleFavoriteItem = (itemId: number) => {
+    const newFavorites = {
+      ...favoriteItems,
+      [itemId]: !favoriteItems[itemId],
+    }
+
+    setFavoriteItems(newFavorites)
+
+    // Salvar no localStorage
+    localStorage.setItem("favoriteItems", JSON.stringify(newFavorites))
+  }
 
   useEffect(() => {
     // Load cart data from localStorage when component mounts
@@ -217,7 +243,7 @@ export default function RestaurantPage({ params }: { params: { id: string } }) {
                                 R$ {item.price.toFixed(2).replace(".", ",")}
                               </p>
                             </div>
-                            <div className="flex justify-center mt-4">
+                            <div className="flex justify-center gap-2 mt-4">
                               <Button
                                 className="bg-emerald-700 hover:bg-emerald-600"
                                 onClick={() => {
@@ -225,6 +251,17 @@ export default function RestaurantPage({ params }: { params: { id: string } }) {
                                 }}
                               >
                                 Adicionar ao carrinho
+                              </Button>
+                              <Button
+                                variant="outline"
+                                className={favoriteItems[item.id] ? "text-red-500 border-red-500" : ""}
+                                onClick={() => toggleFavoriteItem(item.id)}
+                              >
+                                <Heart
+                                  className="h-4 w-4 mr-2"
+                                  fill={favoriteItems[item.id] ? "currentColor" : "none"}
+                                />
+                                {favoriteItems[item.id] ? "Remover dos favoritos" : "Adicionar aos favoritos"}
                               </Button>
                             </div>
                           </DialogDescription>
@@ -237,6 +274,20 @@ export default function RestaurantPage({ params }: { params: { id: string } }) {
                   <div className="flex flex-col items-end justify-between">
                     <div className="h-20 w-20 bg-gray-200 rounded-md relative overflow-hidden">
                       <Image src={item.image || "/placeholder.svg"} alt={item.name} fill className="object-cover" />
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          toggleFavoriteItem(item.id)
+                        }}
+                        className="absolute top-1 right-1 bg-white/80 rounded-full p-1 text-gray-400 hover:text-red-500 transition-colors"
+                        aria-label={favoriteItems[item.id] ? "Remover dos favoritos" : "Adicionar aos favoritos"}
+                      >
+                        <Heart
+                          className="h-4 w-4"
+                          fill={favoriteItems[item.id] ? "currentColor" : "none"}
+                          stroke={favoriteItems[item.id] ? "none" : "currentColor"}
+                        />
+                      </button>
                     </div>
                     <div className="flex items-center mt-2">
                       {getItemQuantityInCart(item.id) > 0 && (
