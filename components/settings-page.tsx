@@ -2,16 +2,16 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
+import { getUserByEmail, updateUserPassword, updateUserSettings } from "@/actions/user-actions"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Switch } from "@/components/ui/switch"
-import { ChevronLeft, Bell, User, CreditCard, Lock, HelpCircle, Save, Key } from "lucide-react"
-import { useRouter } from "next/navigation"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { toast } from "@/components/ui/use-toast"
-import { updateUserSettings, getUserByEmail, updateUserPassword } from "@/actions/user-actions"
+import { Bell, ChevronLeft, CreditCard, HelpCircle, Key, Lock, Save, User } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
 
 export default function SettingsPage() {
   const router = useRouter()
@@ -280,12 +280,12 @@ export default function SettingsPage() {
       {/* Settings Content */}
       <div className="flex-1 px-4 py-6">
         <Tabs defaultValue="profile" className="w-full">
-          <TabsList className="grid grid-cols-3 mb-8">
+          <TabsList className="grid grid-cols-3 rounded-b-none">
             <TabsTrigger value="profile">Perfil</TabsTrigger>
             <TabsTrigger value="notifications">Notificações</TabsTrigger>
             <TabsTrigger value="payment">Pagamento</TabsTrigger>
           </TabsList>
-          <TabsList className="grid grid-cols-3 mb-8">
+          <TabsList className="grid grid-cols-3 mb-8 rounded-t-none">
             <TabsTrigger value="security">Segurança</TabsTrigger>
             <TabsTrigger value="support">Suporte</TabsTrigger>
             <TabsTrigger value="about">Sobre</TabsTrigger>

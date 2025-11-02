@@ -1,7 +1,53 @@
 "use server"
 
+import ensureError from "@/lib/ensure-error"
 import bcrypt from "bcryptjs"
+import * as fs from "fs/promises"
 import { cookies } from "next/headers"
+import * as path from "path"
+
+const USERS_FILE_PATH = path.join(process.cwd(), "data/users.json")
+
+type User = {
+  email: string
+  fullName: string
+  username: string
+  password: string
+  createdAt: string
+}
+
+/**
+ * Reads the users data from the local JSON file.
+ * @returns A promise that resolves to an array of User objects.
+ */
+async function readUsersFile(): Promise<User[]> {
+  try {
+    const data = await fs.readFile(USERS_FILE_PATH, "utf-8")
+    return JSON.parse(data) as User[]
+  } catch (err) {
+    const error = ensureError(err);
+    // If file doesn't exist or is empty/invalid JSON, return an empty array
+    if (error.cause === "ENOENT") {
+      return []
+    }
+    console.error("Error reading users file:", error)
+    return []
+  }
+}
+
+/**
+ * Writes the users data to the local JSON file.
+ * @param users The array of User objects to write.
+ * @returns A promise that resolves when the write operation is complete.
+ */
+async function writeUsersFile(users: User[]): Promise<void> {
+  try {
+    await fs.writeFile(USERS_FILE_PATH, JSON.stringify(users, null, 2), "utf-8")
+  } catch (error) {
+    console.error("Error writing users file:", error)
+    throw new Error("Failed to save user data locally.")
+  }
+}
 
 type UserData = {
   email: string
@@ -19,60 +65,8 @@ type CreateUserResult = {
 // Function to check if a user already exists
 async function checkUserExists(email: string): Promise<boolean> {
   try {
-    const token = process.env.GITHUB_TOKEN
-
-    if (!token) {
-      throw new Error("GitHub token not found")
-    }
-
-    // Get all issues from the repository
-    const response = await fetch("https://api.github.com/repos/lumagarcia57/vida-saborosa/issues", {
-      headers: {
-        Authorization: `token ${token}`,
-        Accept: "application/vnd.github.v3+json",
-      },
-    })
-
-    if (!response.ok) {
-      throw new Error("Failed to fetch issues")
-    }
-
-    const issues = await response.json()
-
-    // Find issue with title "Usuários"
-    const usersIssue = issues.find((issue: any) => issue.title === "Usuários")
-
-    if (!usersIssue) {
-      // No users issue found, so no users exist yet
-      return false
-    }
-
-    // Get the issue body
-    const issueResponse = await fetch(
-      `https://api.github.com/repos/lumagarcia57/vida-saborosa/issues/${usersIssue.number}`,
-      {
-        headers: {
-          Authorization: `token ${token}`,
-          Accept: "application/vnd.github.v3+json",
-        },
-      },
-    )
-
-    if (!issueResponse.ok) {
-      throw new Error("Failed to fetch issue details")
-    }
-
-    const issueDetails = await issueResponse.json()
-
-    // Parse the issue body as JSON
-    try {
-      const users = JSON.parse(issueDetails.body || "[]")
-      // Check if a user with the given email exists
-      return users.some((user: any) => user.email === email)
-    } catch (error) {
-      // If the body is not valid JSON, assume no users
-      return false
-    }
+    const users = await readUsersFile()
+    return users.some((user) => user.email === email)
   } catch (error) {
     console.error("Error checking if user exists:", error)
     return false
@@ -97,7 +91,7 @@ export async function createUser(userData: UserData): Promise<CreateUserResult> 
     const hashedPassword = await bcrypt.hash(userData.password, salt)
 
     // Prepare user data for storage
-    const userToStore = {
+    const userToStore: User = {
       email: userData.email,
       fullName: userData.fullName,
       username: userData.username,
@@ -105,96 +99,14 @@ export async function createUser(userData: UserData): Promise<CreateUserResult> 
       createdAt: new Date().toISOString(),
     }
 
-    const token = process.env.GITHUB_TOKEN
+    // Read existing users
+    const users = await readUsersFile()
 
-    if (!token) {
-      throw new Error("GitHub token not found")
-    }
+    // Add the new user
+    users.push(userToStore)
 
-    // Get all issues from the repository
-    const response = await fetch("https://api.github.com/repos/lumagarcia57/vida-saborosa/issues", {
-      headers: {
-        Authorization: `token ${token}`,
-        Accept: "application/vnd.github.v3+json",
-      },
-    })
-
-    if (!response.ok) {
-      throw new Error("Failed to fetch issues")
-    }
-
-    const issues = await response.json()
-
-    // Find issue with title "Usuários"
-    const usersIssue = issues.find((issue: any) => issue.title === "Usuários")
-
-    if (usersIssue) {
-      // Update existing issue
-      const issueResponse = await fetch(
-        `https://api.github.com/repos/lumagarcia57/vida-saborosa/issues/${usersIssue.number}`,
-        {
-          headers: {
-            Authorization: `token ${token}`,
-            Accept: "application/vnd.github.v3+json",
-          },
-        },
-      )
-
-      if (!issueResponse.ok) {
-        throw new Error("Failed to fetch issue details")
-      }
-
-      const issueDetails = await issueResponse.json()
-
-      // Parse the issue body as JSON
-      let users = []
-      try {
-        users = JSON.parse(issueDetails.body || "[]")
-      } catch (error) {
-        // If the body is not valid JSON, start with an empty array
-      }
-
-      // Add the new user
-      users.push(userToStore)
-
-      // Update the issue
-      const updateResponse = await fetch(
-        `https://api.github.com/repos/lumagarcia57/vida-saborosa/issues/${usersIssue.number}`,
-        {
-          method: "PATCH",
-          headers: {
-            Authorization: `token ${token}`,
-            Accept: "application/vnd.github.v3+json",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            body: JSON.stringify(users, null, 2),
-          }),
-        },
-      )
-
-      if (!updateResponse.ok) {
-        throw new Error("Failed to update issue")
-      }
-    } else {
-      // Create new issue
-      const createResponse = await fetch("https://api.github.com/repos/lumagarcia57/vida-saborosa/issues", {
-        method: "POST",
-        headers: {
-          Authorization: `token ${token}`,
-          Accept: "application/vnd.github.v3+json",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          title: "Usuários",
-          body: JSON.stringify([userToStore], null, 2),
-        }),
-      })
-
-      if (!createResponse.ok) {
-        throw new Error("Failed to create issue")
-      }
-    }
+    // Write back to the file
+    await writeUsersFile(users)
 
     return { success: true }
   } catch (error) {
@@ -209,85 +121,36 @@ export async function createUser(userData: UserData): Promise<CreateUserResult> 
 // Function to verify user credentials
 export async function verifyUser(email: string, password: string): Promise<boolean> {
   try {
-    const token = process.env.GITHUB_TOKEN
+    const users = await readUsersFile()
+    // Find user with the given email
+    const user = users.find((u) => u.email === email)
 
-    if (!token) {
-      throw new Error("GitHub token not found")
-    }
-
-    // Get all issues from the repository
-    const response = await fetch("https://api.github.com/repos/lumagarcia57/vida-saborosa/issues", {
-      headers: {
-        Authorization: `token ${token}`,
-        Accept: "application/vnd.github.v3+json",
-      },
-    })
-
-    if (!response.ok) {
-      throw new Error("Failed to fetch issues")
-    }
-
-    const issues = await response.json()
-
-    // Find issue with title "Usuários"
-    const usersIssue = issues.find((issue: any) => issue.title === "Usuários")
-
-    if (!usersIssue) {
+    if (!user) {
       return false
     }
 
-    // Get the issue body
-    const issueResponse = await fetch(
-      `https://api.github.com/repos/lumagarcia57/vida-saborosa/issues/${usersIssue.number}`,
-      {
-        headers: {
-          Authorization: `token ${token}`,
-          Accept: "application/vnd.github.v3+json",
-        },
-      },
-    )
+    // Compare passwords
+    const isPasswordValid = await bcrypt.compare(password, user.password)
 
-    if (!issueResponse.ok) {
-      throw new Error("Failed to fetch issue details")
+    // If valid, set a login cookie
+    if (isPasswordValid) {
+      const cookieStore = await cookies()
+      cookieStore.set("auth_token", "logged_in", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        maxAge: 60 * 60 * 24 * 7, // 1 week
+        path: "/",
+      })
+
+      cookieStore.set("user_email", email, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        maxAge: 60 * 60 * 24 * 7, // 1 week
+        path: "/",
+      })
     }
 
-    const issueDetails = await issueResponse.json()
-
-    // Parse the issue body as JSON
-    try {
-      const users = JSON.parse(issueDetails.body || "[]")
-      // Find user with the given email
-      const user = users.find((u: any) => u.email === email)
-
-      if (!user) {
-        return false
-      }
-
-      // Compare passwords
-      const isPasswordValid = await bcrypt.compare(password, user.password)
-
-      // If valid, set a login cookie
-      if (isPasswordValid) {
-        cookies().set("auth_token", "logged_in", {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === "production",
-          maxAge: 60 * 60 * 24 * 7, // 1 week
-          path: "/",
-        })
-
-        cookies().set("user_email", email, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === "production",
-          maxAge: 60 * 60 * 24 * 7, // 1 week
-          path: "/",
-        })
-      }
-
-      return isPasswordValid
-    } catch (error) {
-      console.error("Error parsing user data:", error)
-      return false
-    }
+    return isPasswordValid
   } catch (error) {
     console.error("Error verifying user:", error)
     return false
@@ -297,69 +160,20 @@ export async function verifyUser(email: string, password: string): Promise<boole
 // Function to log out user
 export async function logout() {
   // Clear auth cookies
-  cookies().delete("auth_token")
-  cookies().delete("user_email")
+  const cookieStore = await cookies()
+  cookieStore.delete("auth_token")
+  cookieStore.delete("user_email")
 
   return { success: true }
 }
 
 // Add this function to fetch user data by email
-export async function getUserByEmail(email: string): Promise<any | null> {
+export async function getUserByEmail(email: string): Promise<User | null> {
   try {
-    const token = process.env.GITHUB_TOKEN
-
-    if (!token) {
-      throw new Error("GitHub token not found")
-    }
-
-    // Get all issues from the repository
-    const response = await fetch("https://api.github.com/repos/lumagarcia57/vida-saborosa/issues", {
-      headers: {
-        Authorization: `token ${token}`,
-        Accept: "application/vnd.github.v3+json",
-      },
-    })
-
-    if (!response.ok) {
-      throw new Error("Failed to fetch issues")
-    }
-
-    const issues = await response.json()
-
-    // Find issue with title "Usuários"
-    const usersIssue = issues.find((issue: any) => issue.title === "Usuários")
-
-    if (!usersIssue) {
-      return null
-    }
-
-    // Get the issue body
-    const issueResponse = await fetch(
-      `https://api.github.com/repos/lumagarcia57/vida-saborosa/issues/${usersIssue.number}`,
-      {
-        headers: {
-          Authorization: `token ${token}`,
-          Accept: "application/vnd.github.v3+json",
-        },
-      },
-    )
-
-    if (!issueResponse.ok) {
-      throw new Error("Failed to fetch issue details")
-    }
-
-    const issueDetails = await issueResponse.json()
-
-    // Parse the issue body as JSON
-    try {
-      const users = JSON.parse(issueDetails.body || "[]")
-      // Find user with the given email
-      const user = users.find((u: any) => u.email === email)
-      return user || null
-    } catch (error) {
-      console.error("Error parsing user data:", error)
-      return null
-    }
+    const users = await readUsersFile()
+    // Find user with the given email
+    const user = users.find((u) => u.email === email)
+    return user || null
   } catch (error) {
     console.error("Error fetching user:", error)
     return null
@@ -475,7 +289,8 @@ export async function updateUserPassword(
 export async function updateUserSettings(userData: any, section: string) {
   try {
     const token = process.env.GITHUB_TOKEN
-    const userEmail = cookies().get("user_email")?.value
+    const cookieStore = await cookies()
+    const userEmail = cookieStore.get("user_email")?.value
 
     if (!token) {
       throw new Error("GitHub token not found")
@@ -551,7 +366,8 @@ export async function updateUserSettings(userData: any, section: string) {
             users[userIndex].email = userData.email
 
             // Update the cookie with the new email
-            cookies().set("user_email", userData.email, {
+            const cookieStore = await cookies()
+            cookieStore.set("user_email", userData.email, {
               httpOnly: true,
               secure: process.env.NODE_ENV === "production",
               maxAge: 60 * 60 * 24 * 7, // 1 week

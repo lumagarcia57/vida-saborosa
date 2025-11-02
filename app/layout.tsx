@@ -18,5 +18,7 @@ export default function RootLayout({
 }
 
 export const metadata = {
-      generator: 'v0.dev'
-    };
+  generator: 'v0.dev',
+  title: "Vida Saborosa",
+  description: "Vida Saborosa | Delivery de comida"
+};
