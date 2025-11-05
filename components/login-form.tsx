@@ -2,17 +2,18 @@
 
 import type React from "react"
 
-import { useState } from "react"
-import { Checkbox } from "@/components/ui/checkbox"
+import { verifyUser } from "@/actions/user-actions"
 import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import Link from "next/link"
-import Image from "next/image"
-import { useRouter } from "next/navigation"
-import { verifyUser } from "@/actions/user-actions"
 import { toast } from "@/components/ui/use-toast"
-import { User, Lock } from "lucide-react"
+import { useCartStore } from "@/store/cart-store"
+import { Lock, User } from "lucide-react"
+import Image from "next/image"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { useState } from "react"
 
 export default function LoginForm() {
   const [email, setEmail] = useState("")
@@ -20,6 +21,7 @@ export default function LoginForm() {
   const [rememberMe, setRememberMe] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
+  const setUserId = useCartStore(s => s.setUserId)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -39,15 +41,14 @@ export default function LoginForm() {
       const isValid = await verifyUser(email, password)
 
       if (isValid) {
+        setUserId(email)
         toast({
           title: "Login bem-sucedido",
           description: "Redirecionando para o dashboard...",
         })
 
-        // Redirect to dashboard
-        setTimeout(() => {
-          router.push("/dashboard")
-        }, 1000)
+        router.push("/dashboard")
+
       } else {
         toast({
           title: "Falha no login",

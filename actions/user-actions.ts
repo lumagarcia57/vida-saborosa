@@ -268,14 +268,15 @@ export async function verifyUser(email: string, password: string): Promise<boole
 
       // If valid, set a login cookie
       if (isPasswordValid) {
-        cookies().set("auth_token", "logged_in", {
+        const cookieStore = await cookies()
+        cookieStore.set("auth_token", "logged_in", {
           httpOnly: true,
           secure: process.env.NODE_ENV === "production",
           maxAge: 60 * 60 * 24 * 7, // 1 week
           path: "/",
         })
 
-        cookies().set("user_email", email, {
+        cookieStore.set("user_email", email, {
           httpOnly: true,
           secure: process.env.NODE_ENV === "production",
           maxAge: 60 * 60 * 24 * 7, // 1 week
@@ -296,9 +297,10 @@ export async function verifyUser(email: string, password: string): Promise<boole
 
 // Function to log out user
 export async function logout() {
+  const cookieStore = await cookies()
   // Clear auth cookies
-  cookies().delete("auth_token")
-  cookies().delete("user_email")
+  cookieStore.delete("auth_token")
+  cookieStore.delete("user_email")
 
   return { success: true }
 }
@@ -475,7 +477,8 @@ export async function updateUserPassword(
 export async function updateUserSettings(userData: any, section: string) {
   try {
     const token = process.env.GITHUB_TOKEN
-    const userEmail = cookies().get("user_email")?.value
+    const cookieStore = await cookies()
+    const userEmail = cookieStore.get("user_email")?.value
 
     if (!token) {
       throw new Error("GitHub token not found")
@@ -550,8 +553,10 @@ export async function updateUserSettings(userData: any, section: string) {
 
             users[userIndex].email = userData.email
 
+            const cookieStore = await cookies()
+
             // Update the cookie with the new email
-            cookies().set("user_email", userData.email, {
+            cookieStore.set("user_email", userData.email, {
               httpOnly: true,
               secure: process.env.NODE_ENV === "production",
               maxAge: 60 * 60 * 24 * 7, // 1 week

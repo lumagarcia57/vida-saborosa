@@ -2,12 +2,7 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { ChevronLeft, Menu, Star, Clock, MapPin, User, ShoppingCart, ClipboardList, Home, Heart } from "lucide-react"
-import { useRouter } from "next/navigation"
-import Image from "next/image"
-import Link from "next/link"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,6 +11,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { ChevronLeft, ClipboardList, Clock, Heart, Home, MapPin, Menu, ShoppingCart, Star, User } from "lucide-react"
+import Image from "next/image"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
 
 type Restaurant = {
   id: string
@@ -131,7 +131,7 @@ export default function RestaurantList({ category, restaurants }: RestaurantList
       <div className="flex-1 px-4 py-6">
         <h2 className="text-xl font-bold mb-4">Restaurantes - {category}</h2>
 
-        <div className="space-y-8">
+        <div className="space-y-2 flex flex-col">
           {filteredRestaurants.length > 0 ? (
             filteredRestaurants.map((restaurant) => (
               <Link href={`/restaurant/${restaurant.id}`} key={restaurant.id}>

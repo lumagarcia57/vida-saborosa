@@ -1,36 +1,29 @@
 "use client"
 
-import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { ChevronLeft, Trash2, Plus, Minus, ShoppingCart } from "lucide-react"
-import { useRouter } from "next/navigation"
+import { useCartStore, useFavoritesStore } from "@/store/cart-store"
+import { ChevronLeft, Minus, Plus, ShoppingCart, Trash2 } from "lucide-react"
 import Image from "next/image"
+import { useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
 
-// This is a simple cart page. In a real app, you would use a state management solution
-// like Context API, Redux, or Zustand to manage the cart state across the app.
 export default function CartPage() {
   const router = useRouter()
-  const [cart, setCart] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
-  // Simulating cart data - in a real app, this would come from a state management solution
+  const {
+    cart,
+    removeFromCart,
+    getTotalPrice,
+    userId,
+    updateQty
+  } = useCartStore()
+
   useEffect(() => {
-    setIsLoading(true)
-    try {
-      const savedCart = localStorage.getItem("cart")
-      if (savedCart) {
-        setCart(JSON.parse(savedCart))
-      } else {
-        // Initialize with empty cart if nothing is saved
-        setCart([])
-      }
-    } catch (error) {
-      console.error("Error loading cart from localStorage:", error)
-      setCart([])
-    } finally {
-      setIsLoading(false)
-    }
-  }, [])
+    useCartStore.getState().setUserId(userId)
+    useFavoritesStore.getState().setUserId(userId)
+    setIsLoading(false)
+  }, [userId])
 
   const updateQuantity = (itemId: number, newQuantity: number) => {
     if (newQuantity < 1) {
@@ -38,28 +31,10 @@ export default function CartPage() {
       return
     }
 
-    const updatedCart = cart.map((item) => (item.id === itemId ? { ...item, quantity: newQuantity } : item))
-    setCart(updatedCart)
-
-    // Save to localStorage
-    localStorage.setItem("cart", JSON.stringify(updatedCart))
+    updateQty(itemId, newQuantity)
   }
 
-  const removeItem = (itemId: number) => {
-    const updatedCart = cart.filter((item) => item.id !== itemId)
-    setCart(updatedCart)
-
-    // Save to localStorage
-    localStorage.setItem("cart", JSON.stringify(updatedCart))
-  }
-
-  const getTotalPrice = () => {
-    return cart.reduce((total, item) => total + item.price * item.quantity, 0)
-  }
-
-  const getTotalItems = () => {
-    return cart.reduce((total, item) => total + item.quantity, 0)
-  }
+  const removeItem = (itemId: number) => removeFromCart(itemId);
 
   const handleCheckout = () => {
     alert("Funcionalidade de checkout será implementada em breve!")

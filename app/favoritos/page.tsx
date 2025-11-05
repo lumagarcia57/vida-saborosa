@@ -8,6 +8,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { restaurants } from "@/data/restaurants"
+import { useFavoritesStore } from "@/store/cart-store"
 
 export default function FavoritosPage() {
   const router = useRouter()

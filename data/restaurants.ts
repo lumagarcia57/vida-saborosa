@@ -14,7 +14,7 @@ export const restaurants: Restaurant[] = [
   {
     id: "1",
     name: "Burger King",
-    image: "/placeholder.svg?height=400&width=600",
+    image: "/images/burger_king.webp?height=400&width=600",
     rating: 4.5,
     deliveryTime: "25-35 min",
     deliveryFee: "R$ 5,99",
@@ -25,7 +25,7 @@ export const restaurants: Restaurant[] = [
   {
     id: "2",
     name: "McDonald's",
-    image: "/placeholder.svg?height=400&width=600",
+    image: "/images/mcdonalds.webp?height=400&width=600",
     rating: 4.3,
     deliveryTime: "20-30 min",
     deliveryFee: "R$ 4,99",
@@ -36,7 +36,7 @@ export const restaurants: Restaurant[] = [
   {
     id: "3",
     name: "Sabor Caseiro",
-    image: "/placeholder.svg?height=400&width=600",
+    image: "/images/sabor_caseiro.webp?height=400&width=600",
     rating: 4.8,
     deliveryTime: "30-45 min",
     deliveryFee: "R$ 6,99",
@@ -58,7 +58,7 @@ export const restaurants: Restaurant[] = [
   {
     id: "5",
     name: "Sushi Express",
-    image: "/placeholder.svg?height=400&width=600",
+    image: "/images/sushi_express.webp?height=400&width=600",
     rating: 4.6,
     deliveryTime: "40-55 min",
     deliveryFee: "R$ 8,99",
@@ -69,7 +69,7 @@ export const restaurants: Restaurant[] = [
   {
     id: "6",
     name: "Bebidas & Cia",
-    image: "/placeholder.svg?height=400&width=600",
+    image: "/images/bebidas_e_cia.webp?height=900&width=1200",
     rating: 4.4,
     deliveryTime: "15-25 min",
     deliveryFee: "R$ 3,99",
@@ -80,7 +80,7 @@ export const restaurants: Restaurant[] = [
   {
     id: "7",
     name: "Lanchonete do Zé",
-    image: "/placeholder.svg?height=400&width=600",
+    image: "/images/lanchonete_ze.webp?height=400&width=600",
     rating: 4.2,
     deliveryTime: "20-30 min",
     deliveryFee: "R$ 4,99",
@@ -91,7 +91,7 @@ export const restaurants: Restaurant[] = [
   {
     id: "8",
     name: "Salada Gourmet",
-    image: "/placeholder.svg?height=400&width=600",
+    image: "/images/salada_gourmet.webp?height=400&width=600",
     rating: 4.5,
     deliveryTime: "25-35 min",
     deliveryFee: "R$ 5,99",
@@ -102,7 +102,7 @@ export const restaurants: Restaurant[] = [
   {
     id: "9",
     name: "Doce Sabor",
-    image: "/placeholder.svg?height=400&width=600",
+    image: "/images/doce_sabor.webp?height=400&width=600",
     rating: 4.7,
     deliveryTime: "20-30 min",
     deliveryFee: "R$ 4,99",
@@ -113,7 +113,7 @@ export const restaurants: Restaurant[] = [
   {
     id: "10",
     name: "Pizza Hut",
-    image: "/placeholder.svg?height=400&width=600",
+    image: "/images/Pizza-Hut.webp?height=400&width=600",
     rating: 4.4,
     deliveryTime: "30-45 min",
     deliveryFee: "R$ 6,99",
